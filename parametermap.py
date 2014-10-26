@@ -1,5 +1,5 @@
 
-import collections
+import collections.abc
 import itertools
 from functools import reduce
 import operator
@@ -24,10 +24,13 @@ class ParameterMap(collections.abc.MutableMapping):
         _delleaf(self.tree, addr)
 
     def __iter__(self):
-        return itertools.product(*self.values)
+        return _iteraddr(self.tree, len(self.names))
 
     def __len__(self):
         return reduce(operator.mul, (len(v) for v in self.values))
+
+    def combinations(self):
+        return itertools.product(*self.values)
 
     def fix_parameters(self, fixparameters):
         fixnames = [p.name for p in fixparameters]
@@ -43,7 +46,6 @@ class ParameterMap(collections.abc.MutableMapping):
             oldaddr = tuple(newaddr[newmapkey[name]] if name in newnames \
                                 else fixvalues[fixnames.index(name)] \
                                 for name in self.names)
-            print(oldaddr)
             newmap[newaddr] = self[oldaddr]
         return newmap
 
@@ -70,4 +72,16 @@ def _delleaf(tree, addr):
         del tree[addr[0]]
     else:
         _delleaf(tree[addr[0]], addr[1:])
+
+def _iteraddr(tree, depth):
+    if depth != 1:
+        addrs = []
+        for k,v in tree.items():
+            for addr in _iteraddr(v, depth-1):
+                addr.insert(0, k)
+                yield addr
+    else:
+        addrs = []
+        for k,v in tree.items():
+            yield [k]
 

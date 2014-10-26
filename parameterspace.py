@@ -3,12 +3,14 @@
 import copy
 import collections.abc
 from math import log, exp, floor
+from random import shuffle, random
 from parametermap import ParameterMap
 
 class Parameter(object):
 
     def __init__(self, name, bounds, min_step=None):
         self.scale = "linear"
+        self.distribution = "uniform"
         self.name = name
         self.bounds = bounds
         self.values = []
@@ -80,9 +82,7 @@ class ParameterSpace(collections.abc.Container):
     def __contains__(self, name):
         return any(p.name == name for p in self.parameters)
 
-    def mapspace(self, N):
-        """ `N::list,dict` specifies the number of realizations to add along
-        each parameter. """
+    def _getdivisions(self, N):
         if hasattr(N, "keys"):
             runs = {}
             for name, n in N.items():
@@ -91,16 +91,19 @@ class ParameterSpace(collections.abc.Container):
                         p.partition(n)
                         runs[p] = p.values
                         break
+
         elif hasattr(N, "__iter__"):
             if len(N) == len(self.parameters):
                 runs = {p:p.partition(n) for p,n in zip(self.parameters, N)}
             else:
                 raise Exception("Have {0} parameters but recieved {1} "
                                 "values".format(len(self.parameters), len(N)))
+
         elif isinstance(N, int):
             if N > sum(p.npossible() for p in self.parameters):
                 raise ValueError("N is larger than the total number of "
                                  "realizations allowed")
+
             npars = len(self.parameters)
             nperparam = dict([(p, 0) for p in self.parameters])
             i = n = 0
@@ -113,10 +116,34 @@ class ParameterSpace(collections.abc.Container):
 
             names = [p.name for p in self.parameters]
             values = [p.partition(nperparam[p]) for p in self.parameters]
+        return names, values
+
+
+    def lhc(self, N):
+        """ Sample a latin hypercube with `N::int` divisions along each
+        parameter """
+        names = [p.name for p in self.parameters]
+        values = [p.partition(N) for p in self.parameters]
+        for v in values:
+            shuffle(v)
 
         pmap = ParameterMap(names, values)
+        for i in range(N):
+            combo = tuple([v[i] for v in values])
+            parameter_dict = copy.copy(self.default_dict)
+            for p, val in zip(self.parameters, combo):
+                parameter_dict[p.name] = val
+            res = self.model_call(parameter_dict)
+            pmap[combo] = res
 
-        for combo in pmap:
+        return pmap
+
+    def fillspace(self, N):
+        """ `N::list,dict,int` specifies the number of realizations to add """
+        names, values = self._getdivisions(N)
+        pmap = ParameterMap(names, values)
+
+        for combo in pmap.combinations():
             parameter_dict = copy.copy(self.default_dict)
             for p, val in zip(self.parameters, combo):
                 parameter_dict[p.name] = val
