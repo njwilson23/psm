@@ -5,8 +5,8 @@ from functools import reduce
 import operator
 
 class ParameterMap(collections.abc.MutableMapping):
-    """ Tree structure for storing parameter realizations and model solutions.
-    """
+    """ Tree structure for storing parameter realizations and model
+    solutions. """
     def __init__(self, names, values):
         self.names = names
         self.values = values
@@ -28,6 +28,22 @@ class ParameterMap(collections.abc.MutableMapping):
 
     def __len__(self):
         return reduce(operator.mul, (len(v) for v in self.values))
+
+    def apply(self, func, *args, **kwargs):
+        """ Apply `func::function` to solutions and return a new ParameterMap.
+        """
+        newmap = ParameterMap(self.names, self.values)
+        for addr in self:
+            newmap[addr] = func(self[addr], *args, **kwargs)
+        return newmap
+
+    def array(self, name1, name2):
+        # 2d for now
+        from numpy import array
+        v1 = self.values[self.names.index(name1)]
+        v2 = self.values[self.names.index(name2)]
+        data = [[self[(a,b)] for b in v2] for a in v1]
+        return array(data)
 
     def combinations(self):
         return itertools.product(*self.values)
