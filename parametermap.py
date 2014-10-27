@@ -29,6 +29,9 @@ class ParameterMap(collections.abc.MutableMapping):
     def __len__(self):
         return reduce(operator.mul, (len(v) for v in self.values))
 
+    def solutions(self):
+        return [self[addr] for addr in self]
+
     def apply(self, func, *args, **kwargs):
         """ Apply `func::function` to solutions and return a new ParameterMap.
         """
