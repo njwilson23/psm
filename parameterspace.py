@@ -83,41 +83,33 @@ class ParameterSpace(collections.abc.Container):
         return any(p.name == name for p in self.parameters)
 
     def _getdivisions(self, N):
-        if hasattr(N, "keys"):
-            runs = {}
-            for name, n in N.items():
+        if isinstance(N, int):
+            if any(N > p.npossible() for p in self.parameters):
+                raise ValueError("N is too large for at least one variable")
+            names = [p.name for p in self.parameters]
+            values = [p.partition(N) for p in self.parameters]
+
+        elif hasattr(N, "keys"):
+            names = list(N.keys())
+            values = []
+            for name in names:
+                found = False
                 for p in self.parameters:
                     if p.name == name:
-                        p.partition(n)
-                        runs[p] = p.values
+                        values.append(p.partition(N[name]))
+                        found = True
                         break
+                if found is False:
+                    raise KeyError("Parameter '{0}' not found".format(name))
 
         elif hasattr(N, "__iter__"):
-            if len(N) == len(self.parameters):
-                runs = {p:p.partition(n) for p,n in zip(self.parameters, N)}
-            else:
+            if len(N) != len(self.parameters):
                 raise Exception("Have {0} parameters but recieved {1} "
                                 "values".format(len(self.parameters), len(N)))
-
-        elif isinstance(N, int):
-            if N > sum(p.npossible() for p in self.parameters):
-                raise ValueError("N is larger than the total number of "
-                                 "realizations allowed")
-
-            npars = len(self.parameters)
-            nperparam = dict([(p, 0) for p in self.parameters])
-            i = n = 0
-            while n != N:
-                p = self.parameters[i%npars]
-                if nperparam[p] < p.npossible():
-                    nperparam[p] += 1
-                    n += 1
-                i += 1
-
             names = [p.name for p in self.parameters]
-            values = [p.partition(nperparam[p]) for p in self.parameters]
-        return names, values
+            values = [p.partition(N[i]) for i,p in enumerate(self.parameters)]
 
+        return names, values
 
     def lhc(self, N):
         """ Sample a latin hypercube with `N::int` divisions along each
