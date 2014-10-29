@@ -29,6 +29,7 @@ class ParameterMap(collections.abc.MutableMapping):
     def __len__(self):
         return reduce(operator.mul, (len(v) for v in self.values))
 
+    @property
     def solutions(self):
         return [self[addr] for addr in self]
 
@@ -40,8 +41,39 @@ class ParameterMap(collections.abc.MutableMapping):
             newmap[addr] = func(self[addr], *args, **kwargs)
         return newmap
 
+    def extract_array(self, fixparams=None):
+        """ Converts parameter map to an array presenting a view of the
+        parameter space. If `fixparams::list` is a list of FixedParameters,
+        those paramters are held constant and the dimensionality of the
+        returned array is reduced.
+        """
+        from numpy import empty
+        if fixparams is None:
+            fixparams = []
+        elif not hasattr(fixparams, "__iter__"):
+            fixparams = [fixparams]
+
+        def almost(a, b):
+            return abs(a-b) < 1e-6 * a
+
+        fixnames = [p.name for p in fixparams]
+        size = [len(v) for n,v in zip(self.names, self.values)
+                       if n not in fixnames]
+        arr = empty(size, dtype=type(self.solutions()[0]))
+
+        for addr in self:
+            daddr = {}
+            for i,v in enumerate(addr):
+                daddr[self.names[i]] = v
+            if all(almost(daddr[fp.name], fp.value) for fp in fixparams):
+                aaddr = [self.values[i].index(v) for i,v in enumerate(addr)
+                           if self.names[i] not in fixnames]
+                arr[tuple(aaddr)] = self[addr]
+        return arr
+
     def array(self, name1, name2):
         # 2d for now
+        raise DeprecationWarning()
         from numpy import array
         v1 = self.values[self.names.index(name1)]
         v2 = self.values[self.names.index(name2)]
