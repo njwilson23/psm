@@ -59,7 +59,7 @@ class ParameterMap(collections.abc.MutableMapping):
         fixnames = [p.name for p in fixparams]
         size = [len(v) for n,v in zip(self.names, self.values)
                        if n not in fixnames]
-        arr = empty(size, dtype=type(self.solutions()[0]))
+        arr = empty(size, dtype=object)
 
         for addr in self:
             daddr = {}
