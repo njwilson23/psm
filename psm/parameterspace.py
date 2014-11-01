@@ -4,7 +4,7 @@ import copy
 import collections.abc
 from math import log, exp, floor
 from random import shuffle, random
-from parametermap import ParameterMap
+from .parametermap import ParameterMap
 
 class Parameter(object):
 
