@@ -29,7 +29,7 @@ class Parameter(object):
         if n < 2:
             raise ValueError("Partitions must be greater than 1")
         elif n > self.npossible():
-            raise ValueError("Partitions must be fewer than {0}".format(self.npossible()))
+            raise ValueError("Only {0} partitions possible".format(self.npossible()))
 
         if self.scale == "linear":
             dx = (self.bounds[1] - self.bounds[0]) / (n-1)
@@ -57,7 +57,6 @@ class FixedParameter(object):
 class ParameterSpace(collections.abc.Container):
 
     def __init__(self, parameters, model_call, default_dict=None):
-
         """ ParameterSpace manages a suite of model runs.
         
         Arguments:
@@ -76,7 +75,6 @@ class ParameterSpace(collections.abc.Container):
             self.default_dict = {p.name:None for p in parameters}
         else:
             self.default_dict = default_dict
-        # self.realizations = {}
         return
 
     def __contains__(self, name):
@@ -90,7 +88,7 @@ class ParameterSpace(collections.abc.Container):
             values = [p.partition(N) for p in self.parameters]
 
         elif hasattr(N, "keys"):
-            names = list(N.keys())
+            names = [p.name for p in self.parameters if p.name in N]
             values = []
             for name in names:
                 found = False
