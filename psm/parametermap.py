@@ -29,6 +29,12 @@ class ParameterMap(collections.abc.MutableMapping):
     def __len__(self):
         return reduce(operator.mul, (len(v) for v in self.values))
 
+    def get(self, valaddr):
+        return _getleafbyvalue(self.tree, valaddr)
+
+    def set(self, valaddr, val):
+        return _setleafbyvalue(self.tree, valaddr, val)
+
     @property
     def solutions(self):
         return [self[addr] for addr in self]
@@ -59,7 +65,7 @@ class ParameterMap(collections.abc.MutableMapping):
         fixnames = [p.name for p in fixparams]
         size = [len(v) for n,v in zip(self.names, self.values)
                        if n not in fixnames]
-        arr = empty(size, dtype=type(self.solutions[0]))
+        arr = empty(size, dtype=object)
 
         for addr in self:
             daddr = {}
@@ -116,10 +122,10 @@ def _getleaf(tree, addr):
         return _getleaf(tree[addr[0]], addr[1:])
 
 def _getleafbyvalue(tree, valaddr):
-    if len(addr) == 1:
+    if len(valaddr) == 1:
         return tree[tree["idx"].index(valaddr[0])]
     else:
-        return _getleafbyvalue(tree[addr[0]], addr[1:])
+        return _getleafbyvalue(tree.get(valaddr[0]), valaddr[1:])
 
 def _setleaf(tree, addr, val):
     if len(addr) == 1:
@@ -128,10 +134,15 @@ def _setleaf(tree, addr, val):
         _setleaf(tree[addr[0]], addr[1:], val)
 
 def _setleafbyvalue(tree, valaddr, val):
-    if len(addr) == 1:
+    if valaddr[0] not in tree["idx"]:
+        n = len(tree["idx"])
+        tree["idx"].append(valaddr[0])
+        tree[n] = {"idx": []}
+
+    if len(valaddr) == 1:
         tree[tree["idx"].index(valaddr[0])] = val
     else:
-        _setleaf(tree[addr[0]], addr[1:], val)
+        _setleafbyvalue(tree[tree["idx"].index(valaddr[0])], valaddr[1:], val)
 
 def _delleaf(tree, addr):
     if len(addr) == 1:

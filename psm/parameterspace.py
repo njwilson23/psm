@@ -138,7 +138,7 @@ class ParameterSpace(collections.abc.Container):
             for p, val in zip(self.parameters, combo):
                 parameter_dict[p.name] = val
             res = self.model_call(parameter_dict)
-            pmap[combo] = res
+            pmap.set(combo, res)
 
         return pmap
 
