@@ -4,6 +4,7 @@ import copy
 import collections.abc
 from math import log, exp, floor
 from random import shuffle, random
+import multiprocessing
 from .parametermap import ParameterMap
 
 class Parameter(object):
@@ -133,12 +134,21 @@ class ParameterSpace(collections.abc.Container):
         names, values = self._getdivisions(N)
         pmap = ParameterMap(names, values)
 
+        combos = []
+        pdicts = []
         for combo in pmap.combinations():
             parameter_dict = copy.copy(self.default_dict)
             for p, val in zip(self.parameters, combo):
                 parameter_dict[p.name] = val
-            res = self.model_call(parameter_dict)
-            pmap[combo] = res
+            combos.append(combo)
+            pdicts.append(parameter_dict)
+            # res = self.model_call(parameter_dict)
+            # pmap[combo] = res
 
+        pool = multiprocessing.Pool()
+        results = pool.map(self.model_call, pdicts)
+        for combo, res in zip(combos, results):
+            pmap[combo] = res
+        del pool
         return pmap
 
