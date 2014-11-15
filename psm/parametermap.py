@@ -104,7 +104,10 @@ def _buildtree(values):
     if len(values) == 0:
         return None
     else:
-        return {val: _buildtree(values[1:]) for val in values[0]}
+        n = len(values[0])
+        tree = {i: _buildtree(values[1:]) for i in range(n)}
+        tree["idx"] = values[0]
+        return tree
 
 def _getleaf(tree, addr):
     if len(addr) == 1:
@@ -112,9 +115,21 @@ def _getleaf(tree, addr):
     else:
         return _getleaf(tree[addr[0]], addr[1:])
 
+def _getleafbyvalue(tree, valaddr):
+    if len(addr) == 1:
+        return tree[tree["idx"].index(valaddr[0])]
+    else:
+        return _getleafbyvalue(tree[addr[0]], addr[1:])
+
 def _setleaf(tree, addr, val):
     if len(addr) == 1:
         tree[addr[0]] = val
+    else:
+        _setleaf(tree[addr[0]], addr[1:], val)
+
+def _setleafbyvalue(tree, valaddr, val):
+    if len(addr) == 1:
+        tree[tree["idx"].index(valaddr[0])] = val
     else:
         _setleaf(tree[addr[0]], addr[1:], val)
 
@@ -128,11 +143,13 @@ def _iteraddr(tree, depth):
     if depth != 1:
         addrs = []
         for k,v in tree.items():
-            for addr in _iteraddr(v, depth-1):
-                addr.insert(0, k)
-                yield addr
+            if k != "idx":
+                for addr in _iteraddr(v, depth-1):
+                    addr.insert(0, k)
+                    yield addr
     else:
         addrs = []
         for k,v in tree.items():
-            yield [k]
+            if k != "idx":
+                yield [k]
 
