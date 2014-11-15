@@ -1,5 +1,6 @@
 
 import collections.abc
+import copy
 import itertools
 from functools import reduce
 import operator
@@ -7,10 +8,11 @@ import operator
 class ParameterMap(collections.abc.MutableMapping):
     """ Tree structure for storing parameter realizations and model
     solutions. """
-    def __init__(self, names, values):
+    def __init__(self, names, values=None):
         self.names = names
         self.values = values
-        self.tree = _buildtree(self.values)
+        if self.values is not None:
+            self.tree = _buildtree(self.values)
         return
 
     def __getitem__(self, addr):
@@ -77,33 +79,23 @@ class ParameterMap(collections.abc.MutableMapping):
                 arr[tuple(aaddr)] = self[addr]
         return arr
 
-    def array(self, name1, name2):
-        # 2d for now
-        raise DeprecationWarning()
-        from numpy import array
-        v1 = self.values[self.names.index(name1)]
-        v2 = self.values[self.names.index(name2)]
-        data = [[self[(a,b)] for b in v2] for a in v1]
-        return array(data)
+    def array(self, fixparams=None):
+        return self.extract_array(fixparams)
 
     def combinations(self):
         return itertools.product(*self.values)
 
     def fix_parameters(self, fixparameters):
-        fixnames = [p.name for p in fixparameters]
+        fixdepths = [self.names.index(p.name) for p in fixparameters]
         fixvalues = [p.value for p in fixparameters]
 
-        newnames = [name for name in self.names if name not in fixnames]
-        newvalues = [v for n,v in zip(self.names, self.values) if n in newnames]
-        newmap = ParameterMap(newnames, newvalues)
-        newmapkey = {name: i for i, name in enumerate(newnames)}
-
-        for newaddr in newmap:
-            # construct the old address
-            oldaddr = tuple(newaddr[newmapkey[name]] if name in newnames \
-                                else fixvalues[fixnames.index(name)] \
-                                for name in self.names)
-            newmap[newaddr] = self[oldaddr]
+        newmap = copy.deepcopy(self)
+        for p in fixparameters:
+            i = newmap.names.index(p.name)
+            j = newmap.values[i].index(p.value)
+            del newmap.values[i][j]
+        for depth, value in zip(fixdepths, fixvalues):
+            _pruneexcept(newmap.tree, depth, value)
         return newmap
 
 def _buildtree(values):
@@ -149,6 +141,18 @@ def _delleaf(tree, addr):
         del tree[addr[0]]
     else:
         _delleaf(tree[addr[0]], addr[1:])
+
+def _pruneexcept(tree, depth, val):
+    """ Prune all branches from *tree* at *depth* except those matching *val*.
+    """
+    if depth != 0:
+        _pruneexcept(tree, depth-1, val)
+    else:
+        i = tree["idx"].index(val)
+        deadbranches = set(tree.keys()).difference((i, "idx"))
+        for br in deadbranches:
+            print("cutting branch ", br)
+            del tree[br]
 
 def _iteraddr(tree, depth):
     if depth != 1:
