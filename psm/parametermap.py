@@ -81,16 +81,17 @@ class ParameterMap(collections.abc.MutableMapping):
         fixnames = [p.name for p in fixparams]
         size = [len(v) for n,v in zip(self.names, self.values)
                        if n not in fixnames]
-        arr = empty(size, dtype=object)
+        arr = empty(size, dtype=self.solntype)
 
         for addr in self:
-            daddr = {}
-            for i,v in enumerate(addr):
-                daddr[self.names[i]] = v
-            if all(almost(daddr[fp.name], fp.value) for fp in fixparams):
-                aaddr = [self.values[i].index(v) for i,v in enumerate(addr)
-                           if self.names[i] not in fixnames]
-                arr[tuple(aaddr)] = self[addr]
+            sorted_addr = []
+            for i,a in enumerate(addr):
+                if i == 0:
+                    a_ = self.tree["idx"].index(self.values[i][a])
+                else:
+                    a_ = self[addr[:i]]["idx"].index(self.values[i][a])
+                sorted_addr.append(a_)
+            arr[tuple(sorted_addr)] = self[addr]
         return arr
 
     def array(self, fixparams=None):
