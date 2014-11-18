@@ -8,8 +8,14 @@ from .parametermap import ParameterMap
 
 class Parameter(object):
 
-    def __init__(self, name, bounds, min_step=None):
-        self.scale = "linear"
+    def __init__(self, name, bounds, min_step=None, scale="linear"):
+        """ Defines a named parameter that can be automatically varied over a
+        range within *bounds*.
+
+        min_step: minimum stepsize for discrete parameters
+        scale: either "linear" or "log"
+        """
+        self.scale = scale
         self.distribution = "uniform"
         self.name = name
         self.bounds = bounds
