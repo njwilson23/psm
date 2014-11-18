@@ -17,7 +17,9 @@ class ParameterMap(collections.abc.MutableMapping):
         return
 
     def __repr__(self):
-        return "ParameterMap[{0}]".format(self.solntype)
+        childtypestr = ".".join([self.solntype.__module__,
+                                 self.solntype.__name__])
+        return "ParameterMap[{0}]".format(childtypestr)
 
     def __getitem__(self, addr):
         return _getleaf(self.tree, addr)
