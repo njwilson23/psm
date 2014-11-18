@@ -11,6 +11,8 @@ def plot2d(pmap, fp=None, ax=None, **kw):
     cm = ax.pcolormesh(np.array(pmap.values[1]),
                        np.array(pmap.values[0]),
                        A, **kw)
+    ax.set_xticks(pmap.values[1])
+    ax.set_yticks(pmap.values[0])
     ax.set_xlabel(pmap.names[1])
     ax.set_ylabel(pmap.names[0])
     ax.axis('tight')
