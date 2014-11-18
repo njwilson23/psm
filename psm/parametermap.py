@@ -8,17 +8,26 @@ import operator
 class ParameterMap(collections.abc.MutableMapping):
     """ Tree structure for storing parameter realizations and model
     solutions. """
-    def __init__(self, names, values=None):
+    def __init__(self, names, values=None, solntype=None):
         self.names = names
         self.values = values
+        self.solntype = solntype
         if self.values is not None:
             self.tree = _buildtree(self.values)
         return
+
+    def __repr__(self):
+        return "ParameterMap[{0}]".format(self.solntype)
 
     def __getitem__(self, addr):
         return _getleaf(self.tree, addr)
 
     def __setitem__(self, addr, solution):
+        if self.solntype is None:
+            self.solntype = type(solution)
+        elif not isinstance(solution, self.solntype):
+            raise TypeError("Cannot assign type {0} to ParameterMap of type "
+                            "{1}".format(type(solution), self.solntype))
         _setleaf(self.tree, addr, solution)
         return
 
@@ -34,8 +43,13 @@ class ParameterMap(collections.abc.MutableMapping):
     def get(self, valaddr):
         return _getleafbyvalue(self.tree, valaddr)
 
-    def set(self, valaddr, val):
-        return _setleafbyvalue(self.tree, valaddr, val)
+    def set(self, valaddr, solution):
+        if self.solntype is None:
+            self.solntype = type(solution)
+        elif not isinstance(solution, self.solntype):
+            raise TypeError("Cannot assign type {0} to ParameterMap of type "
+                            "{1}".format(type(solution), self.solntype))
+        return _setleafbyvalue(self.tree, valaddr, solution)
 
     @property
     def solutions(self):
