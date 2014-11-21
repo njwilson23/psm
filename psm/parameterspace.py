@@ -58,12 +58,12 @@ class DiscreteValueParameter(Parameter):
                                                            len(self.possiblevalues))
 
     def partition(self, n):
+        N = len(self.possiblevalues)
         if n < 2:
             raise ValueError("Partitions must be greater than 1")
-        elif n > len(self.possiblevalues):
-            raise ValueError("Only {0} partitions possible".format(self.npossible()))
+        elif n > N:
+            raise ValueError("Only {0} partitions possible".format(N))
 
-        N = len(self.possiblevalues)
         self.values = [self.possiblevalues[i] for i in range(0, N, N//n)]
         return self.values
 
@@ -104,8 +104,6 @@ class ParameterSpace(collections.abc.Container):
 
     def _getdivisions(self, N):
         if isinstance(N, int):
-            if any(N > p.npossible() for p in self.parameters):
-                raise ValueError("N is too large for at least one variable")
             names = [p.name for p in self.parameters]
             values = [p.partition(N) for p in self.parameters]
 
