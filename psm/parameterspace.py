@@ -131,7 +131,7 @@ class ParameterSpace(collections.abc.Container):
 
         return names, values
 
-    def lhc(self, N):
+    def lhc(self, N, **kw):
         """ Sample a latin hypercube with `N::int` divisions along each
         parameter """
         names = [p.name for p in self.parameters]
@@ -139,7 +139,7 @@ class ParameterSpace(collections.abc.Container):
         for v in values:
             shuffle(v)
 
-        pmap = ParameterMap(names, values)
+        pmap = ParameterMap(names, values, **kw)
         for i in range(N):
             combo = tuple([v[i] for v in values])
             parameter_dict = copy.copy(self.default_dict)
@@ -150,10 +150,10 @@ class ParameterSpace(collections.abc.Container):
 
         return pmap
 
-    def fillspace(self, N):
+    def fillspace(self, N, **kw):
         """ `N::list,dict,int` specifies the number of realizations to add """
         names, values = self._getdivisions(N)
-        pmap = ParameterMap(names, values)
+        pmap = ParameterMap(names, values, **kw)
 
         for combo in pmap.combinations():
             parameter_dict = copy.copy(self.default_dict)
