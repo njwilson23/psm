@@ -1,5 +1,5 @@
 import unittest
-from psm import Parameter, ParameterSpace
+from psm import Parameter, DiscreteValueParameter, ParameterSpace
 from psm import ParameterMap
 from math import log
 
@@ -8,13 +8,13 @@ class ParameterSpaceTests(unittest.TestCase):
 
     def setUp(self):
         def model(kw):
-            return kw["tuning knob"]**kw["toggle"] / log(kw["fudge factor"])
+            return complex(kw["tuning knob"]**kw["toggle"] / log(kw["fudge factor"]))
         self.model = model
         return
 
     def test_fillspace(self):
         knob = Parameter("tuning knob", [-5, 15])
-        toggle = Parameter("toggle", [3, 4], min_step=1)
+        toggle = DiscreteValueParameter("toggle", [3, 4])
         fudge = Parameter("fudge factor", [2.0, 10.0])
         pspace = ParameterSpace([knob, toggle, fudge], model_call=self.model)
 
@@ -28,7 +28,7 @@ class ParameterSpaceTests(unittest.TestCase):
         fudge = Parameter("fudge factor", [2.0, 10.0])
         pspace = ParameterSpace([knob, toggle, fudge], model_call=self.model)
 
-        pmap_lhc = pspace.lhc(5)
+        pmap_lhc = pspace.lhc(5, solntype=complex)
         self.assertEqual(len(pmap_lhc), 125)
         self.assertEqual(len([addr for addr in pmap_lhc if pmap_lhc[addr] is not None]), 5)
         return
