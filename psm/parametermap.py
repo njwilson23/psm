@@ -103,16 +103,18 @@ class ParameterMap(collections.abc.MutableMapping):
         return itertools.product(*self.values)
 
     def fix_parameters(self, fixparameters):
+        """ Return a pruned ParameterMap with *fixparameters* held constant. """
         fixdepths = [self.names.index(p.name) for p in fixparameters]
         fixvalues = [p.value for p in fixparameters]
 
         newmap = copy.deepcopy(self)
+        for depth, value in zip(fixdepths, fixvalues):
+            _pruneexcept(newmap.tree, depth, value)
+
         for p in fixparameters:
             i = newmap.names.index(p.name)
             j = newmap.values[i].index(p.value)
             del newmap.values[i][j]
-        for depth, value in zip(fixdepths, fixvalues):
-            _pruneexcept(newmap.tree, depth, value)
         return newmap
 
 def _buildtree(values):
@@ -163,12 +165,13 @@ def _pruneexcept(tree, depth, val):
     """ Prune all branches from *tree* at *depth* except those matching *val*.
     """
     if depth != 0:
-        _pruneexcept(tree, depth-1, val)
+        for branch in tree:
+            if branch != "idx":
+                _pruneexcept(tree[branch], depth-1, val)
     else:
         i = tree["idx"].index(val)
         deadbranches = set(tree.keys()).difference((i, "idx"))
         for br in deadbranches:
-            print("cutting branch ", br)
             del tree[br]
 
 def _iteraddr(tree, depth):
