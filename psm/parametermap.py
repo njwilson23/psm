@@ -17,8 +17,11 @@ class ParameterMap(collections.abc.MutableMapping):
         return
 
     def __repr__(self):
-        childtypestr = ".".join([self.solntype.__module__,
-                                 self.solntype.__name__])
+        if self.solntype is None:
+            childtypestr = "None"
+        else:
+            childtypestr = ".".join([self.solntype.__module__,
+                                     self.solntype.__name__])
         return "ParameterMap[{0}]".format(childtypestr)
 
     def __getitem__(self, addr):
