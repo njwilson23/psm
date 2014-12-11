@@ -107,14 +107,18 @@ class ParameterMap(collections.abc.MutableMapping):
         fixdepths = [self.names.index(p.name) for p in fixparameters]
         fixvalues = [p.value for p in fixparameters]
 
-        newmap = copy.deepcopy(self)
+        # cut away parameter values not in fixedparameters
+        newmap = self.copy()
         for depth, value in zip(fixdepths, fixvalues):
             _pruneexcept(newmap.tree, depth, value)
 
+        # update names and values lists
         for p in fixparameters:
             i = newmap.names.index(p.name)
             j = newmap.values[i].index(p.value)
-            del newmap.values[i][j]
+            for jx in reversed(range(len(newmap.values[i]))):
+                if j != jx:
+                    del newmap.values[i][jx]
         return newmap
 
 def _buildtree(values):
@@ -173,6 +177,7 @@ def _pruneexcept(tree, depth, val):
         deadbranches = set(tree.keys()).difference((i, "idx"))
         for br in deadbranches:
             del tree[br]
+        tree["idx"] = [tree["idx"][i]]
 
 def _iteraddr(tree, depth):
     if depth != 1:
