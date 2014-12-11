@@ -1,8 +1,34 @@
 import unittest
 from psm import Parameter, FixedParameter, DiscreteValueParameter
 from psm import ParameterSpace, ParameterMap
+import psm
 from math import log
 
+
+class PSMTests(unittest.TestCase):
+
+    def setUp(self):
+        def model(kw):
+            return complex(kw["tuning knob"]**kw["toggle"] / log(kw["fudge factor"]))
+        self.model = model
+        return
+
+    def test_fillspace(self):
+        knob = Parameter("tuning knob", [-5, 15])
+        toggle = DiscreteValueParameter("toggle", [3, 4])
+        fudge = Parameter("fudge factor", [2.0, 10.0])
+        pmap = psm.fillspace(self.model, [knob, toggle, fudge], [5, 2, 4])
+        self.assertEqual(len(pmap), 40)
+        return
+
+    def test_lhc(self):
+        knob = Parameter("tuning knob", [-5, 15])
+        toggle = Parameter("toggle", [0, 10])
+        fudge = Parameter("fudge factor", [2.0, 10.0])
+        pmap = psm.latin_hypercube(self.model, [knob, toggle, fudge], 5, solntype=complex)
+        self.assertEqual(len(pmap), 125)
+        self.assertEqual(len([addr for addr in pmap if pmap[addr] is not None]), 5)
+        return
 
 class ParameterSpaceTests(unittest.TestCase):
 
@@ -28,9 +54,9 @@ class ParameterSpaceTests(unittest.TestCase):
         fudge = Parameter("fudge factor", [2.0, 10.0])
         pspace = ParameterSpace([knob, toggle, fudge], model_call=self.model)
 
-        pmap_lhc = pspace.lhc(5, solntype=complex)
-        self.assertEqual(len(pmap_lhc), 125)
-        self.assertEqual(len([addr for addr in pmap_lhc if pmap_lhc[addr] is not None]), 5)
+        pmap = pspace.lhc(5, solntype=complex)
+        self.assertEqual(len(pmap), 125)
+        self.assertEqual(len([addr for addr in pmap if pmap[addr] is not None]), 5)
         return
 
 class ParameterMapTests(unittest.TestCase):

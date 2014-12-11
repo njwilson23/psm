@@ -4,7 +4,9 @@ from .parameterspace import ParameterSpace, \
                             DiscreteValueParameter, \
                             FixedParameter
 
+from .core import fillspace, latin_hypercube
+
 from .parametermap import ParameterMap
 
-__all__ = ["parameterspace", "parametermap"]
+__all__ = ["parameterspace", "parametermap", "core"]
 
