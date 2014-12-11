@@ -45,6 +45,9 @@ class ParameterMap(collections.abc.MutableMapping):
     def __len__(self):
         return reduce(operator.mul, (len(v) for v in self.values))
 
+    def copy(self):
+        return copy.deepcopy(self)
+
     def get(self, valaddr):
         return _getleafbyvalue(self.tree, valaddr)
 
@@ -170,6 +173,11 @@ def _delleaf(tree, addr):
 
 def _pruneexcept(tree, depth, val):
     """ Prune all branches from *tree* at *depth* except those matching *val*.
+
+    Example:
+    given tree T,
+        _pruneexcept(T, 2, pi)
+    will remove all great-grandchildren of T with value pi.
     """
     if depth != 0:
         for branch in tree:
