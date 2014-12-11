@@ -192,14 +192,12 @@ def _pruneexcept(tree, depth, val):
 
 def _iteraddr(tree, depth):
     if depth != 1:
-        addrs = []
         for k,v in tree.items():
             if k != "idx":
                 for addr in _iteraddr(v, depth-1):
                     addr.insert(0, k)
                     yield addr
     else:
-        addrs = []
         for k,v in tree.items():
             if k != "idx":
                 yield [k]
