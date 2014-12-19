@@ -210,7 +210,28 @@ def _iteraddr(tree, depth):
                     addr.insert(0, k)
                     yield addr
     else:
+        for k in tree["idx"]
         for k,v in tree.items():
             if k != "idx":
                 yield [k]
+
+class Index(object):
+    def __init__(self):
+        self.keys = []
+        self.values = []
+
+    def __getitem__(self, key):
+        for k,v in zip(self.keys, self.values):
+            if k == key:
+                return v
+
+    def __setitem__(self, key, value):
+        if value in self.values:
+            previouskey = self.keys[self.values.index(value)]
+            raise ValueError("Value already indexed at {0}".format(previouskey))
+        elif key in self.keys:
+            self.values[self.keys.index(key)] = value
+        else:
+            self.keys.append(key)
+            self.values.append(value)
 
