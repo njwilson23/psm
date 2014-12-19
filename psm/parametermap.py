@@ -1,3 +1,15 @@
+""" Implements a tree-based map through a potentially sparse parameter space.
+
+Each branch of the tree contains a child branch called "idx", plus additional
+children with integer keys. The "idx" branch is a dictionary of parameter keys
+and values.
+
+            parent
+          /   |    \
+        idx   0     1
+              |      \
+            soln    soln
+"""
 
 import collections.abc
 import copy
