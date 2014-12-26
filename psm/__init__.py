@@ -1,12 +1,7 @@
 
-from .core import fillspace, latin_hypercube
+from .core import *
 from .parametermap import ParameterMap
-from .parameters import Parameter, \
-                        DiscreteValueParameter, \
-                        FixedParameter
-
-# Deprecated
-from .parameterspace import ParameterSpace
+from .parameters import Parameter, DiscreteValueParameter, FixedParameter
 
 __all__ = ["parameterspace", "parametermap", "core"]
 
