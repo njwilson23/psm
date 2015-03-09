@@ -1,16 +1,3 @@
-""" Implements a tree-based map through a potentially sparse parameter space.
-
-Each branch of the tree contains a child branch called "idx", plus additional
-children with integer keys. The "idx" branch is a dictionary of parameter keys
-and values.
-
-            parent
-          /   |    \
-        idx   0     1
-              |      \
-            soln    soln
-"""
-
 import collections.abc
 import copy
 import itertools
@@ -47,6 +34,9 @@ class StackParameterMap(object):
 
             if found:
                 return self.solutions[i]
+            else:
+                i += 1
+
         raise KeyError("No solution exists for parameters {0}".format(key))
 
     def __setitem__(self, key, soln):
@@ -83,8 +73,18 @@ class StackParameterMap(object):
         raise NotImplementedError()
 
 # class TreeParameterMap(collections.abc.MutableMapping):
-#     """ Tree structure for storing parameter realizations and model
-#     solutions. """
+#     """ Implements a tree-based map through a potentially sparse parameter space.
+# 
+#     Each branch of the tree contains a child branch called "idx", plus additional
+#     children with integer keys. The "idx" branch is a dictionary of parameter keys
+#     and values.
+# 
+#                 parent
+#               /   |    \
+#             idx   0     1
+#                   |      \
+#                 soln    soln
+#     """
 #     def __init__(self, names, values=None, solntype=None):
 #         self.names = names
 #         self.values = values

@@ -1,4 +1,4 @@
-from random import shuffle, random
+from random import shuffle
 import itertools
 from .parametermap import ParameterMap
 
@@ -9,26 +9,21 @@ def combinations(parameters, N):
     return itertools.product(*values)
 
 def fillspace(model_call, parameters, divisions, **kw):
-    """ `N::list,dict,int` specifies the number of realizations to add """
-    names, values = getdivisions(parameters, divisions)
+    """ `divisions::list,dict,int` specifies the number of realizations to add """
     pmap = ParameterMap(parameters, **kw)
-
-    for combo in combinations(values):
+    for combo in combinations(parameters, divisions):
         parameter_dict = {}
         for p, val in zip(parameters, combo):
             parameter_dict[p.name] = val
         res = model_call(parameter_dict)
         pmap.set(combo, res)
-
     return pmap
-
 
 def latin_hypercube(model_call, parameters, divisions, **kw):
     """ Sample a latin hypercube with `divisions::int` divisions along each
     parameter """
     pmap = ParameterMap(parameters, **kw)
 
-    names = [p.name for p in parameters]
     values = [p.partition(divisions) for p in parameters]
     for v in values:
         shuffle(v)
@@ -42,7 +37,6 @@ def latin_hypercube(model_call, parameters, divisions, **kw):
         pmap.set(combo, res)
 
     return pmap
-
 
 def getdivisions(parameters, N):
     """ Given a set of parameters and an integer/list/dictionary N, return a

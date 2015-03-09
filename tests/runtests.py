@@ -1,6 +1,6 @@
 import unittest
 from psm import Parameter, FixedParameter, DiscreteValueParameter
-from psm import ParameterSpace, ParameterMap
+from psm import ParameterMap
 import psm
 from math import log
 
@@ -100,14 +100,14 @@ class ParameterMapTests(unittest.TestCase):
     #     self.assertTrue(3.141592 not in pmap.solutions)
     #     return
 
-    # def test_fix_parameters1(self):
-    #     # fix a top level parameter
-    #     fp = FixedParameter("a", 1)
-    #     fixed_pmap = self.pmap.fix_parameters([fp])
-    #     self.assertEqual(len(fixed_pmap), 9)
-    #     self.assertEqual(len(fixed_pmap.tree.keys()), 2)
-    #     self.assertEqual(fixed_pmap.tree["idx"], [1])
-    #     return
+    def test_fix_parameters1(self):
+        # fix a top level parameter
+        fp = FixedParameter("a", 1)
+        fixed_pmap = self.pmap.fix_parameters([fp])
+        self.assertEqual(len(fixed_pmap), 9)
+        self.assertEqual(len(fixed_pmap.tree.keys()), 2)
+        self.assertEqual(fixed_pmap.tree["idx"], [1])
+        return
 
     # def test_fix_parameters2(self):
     #     # fix a parameter that isn't at the top level
