@@ -5,7 +5,7 @@ from functools import reduce
 import operator
 import sqlite3
 
-class StackParameterMap(object):
+class ParameterMap(object):
     """ Organized as a stack of parameter combinations and solutions. """
 
     def __init__(self, parameters, solntype=None):
@@ -88,7 +88,7 @@ class StackParameterMap(object):
                     values.append([self.values[j][i] for j in range(npars)])
 
         remaining_names = [n for n in self.names if n not in fixnames]
-        newmap = StackParameterMap([])
+        newmap = ParameterMap([])
         newmap.names = remaining_names
         newmap.solutions = solns
         newmap.values = values
@@ -328,4 +328,3 @@ class StackParameterMap(object):
 #             self.keys.append(key)
 #             self.values.append(value)
 
-ParameterMap = StackParameterMap
