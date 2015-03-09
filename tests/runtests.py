@@ -102,11 +102,17 @@ class ParameterMapTests(unittest.TestCase):
 
     def test_fix_parameters1(self):
         # fix a top level parameter
+        model = lambda p: p["a"]**2 + p["b"]**3
+        pmap = psm.fillspace(model,
+                             [Parameter("a", (0, 4)),
+                              Parameter("b", (-2, 4))],
+                             5)
+
         fp = FixedParameter("a", 1)
-        fixed_pmap = self.pmap.fix_parameters([fp])
-        self.assertEqual(len(fixed_pmap), 9)
-        self.assertEqual(len(fixed_pmap.tree.keys()), 2)
-        self.assertEqual(fixed_pmap.tree["idx"], [1])
+        fixed_pmap = pmap.fix_parameters(fp)
+        self.assertEqual(len(fixed_pmap), 5)
+        #self.assertEqual(len(fixed_pmap.tree.keys()), 2)
+        #self.assertEqual(fixed_pmap.tree["idx"], [1])
         return
 
     # def test_fix_parameters2(self):

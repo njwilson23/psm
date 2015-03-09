@@ -41,9 +41,14 @@ class StackParameterMap(object):
 
     def __setitem__(self, key, soln):
         if len(key) != len(self.values):
-            raise KeyError("Key length must equal ParameterMap dimension ({0})".format(len(self.values)))
+            raise KeyError("Key length must equal ParameterMap dimension "
+                           "({0})".format(len(self.values)))
         if (type(soln) is not self.solntype) and (soln is not None):
-            raise TypeError("Solutions must be of type {0} or None".format(self.solntype))
+            if self.solntype is None:
+                self.solntype = type(soln)
+            else:
+                raise TypeError("Solutions must be of type {0} or "
+                                "None".format(self.solntype))
         for j,k in enumerate(key):
             self.values[j].append(k)
         self.solutions.append(soln)
@@ -70,7 +75,25 @@ class StackParameterMap(object):
         return newmap
 
     def fix_parameters(self, *fixparams):
-        raise NotImplementedError()
+        """ Return a view only containing solutions with *fixparams* set. """
+        fixnames = [p.name for p in fixparams]
+        fix_indices = [self.names.index(n) for n in fixnames]
+
+        npars = len(self.names)
+        solns, values = [], []
+        for i, soln in enumerate(self.solutions):
+            for idx in fix_indices:
+                if fixparams[idx].value == self.values[idx][i]:
+                    solns.append(soln)
+                    values.append([self.values[j][i] for j in range(npars)])
+
+        remaining_names = [n for n in self.names if n not in fixnames]
+        newmap = StackParameterMap([])
+        newmap.names = remaining_names
+        newmap.solutions = solns
+        newmap.values = values
+        newmap.solntype = self.solntype
+        return newmap
 
 # class TreeParameterMap(collections.abc.MutableMapping):
 #     """ Implements a tree-based map through a potentially sparse parameter space.
