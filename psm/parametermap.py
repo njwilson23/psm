@@ -51,9 +51,9 @@ class StackParameterMap(object):
 
     def __setitem__(self, key, soln):
         if len(key) != len(self.values):
-            raise KeyError("Invalid key length")
+            raise KeyError("Key length must equal ParameterMap dimension ({0})".format(len(self.values)))
         if (type(soln) is not self.solntype) and (soln is not None):
-            raise TypeError("Invalid solution type")
+            raise TypeError("Solutions must be of type {0} or None".format(self.solntype))
         for j,k in enumerate(key):
             self.values[j].append(k)
         self.solutions.append(soln)
@@ -78,9 +78,6 @@ class StackParameterMap(object):
         for i in range(len(newmap)):
             newmap.solutions[i] = func(newmap.solutions[i], *args, **kwargs)
         return newmap
-
-    def array(self, *fixedparams):
-        raise NotImplementedError()
 
     def fix_parameters(self, *fixparams):
         raise NotImplementedError()
